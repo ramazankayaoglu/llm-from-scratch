@@ -1,0 +1,127 @@
+Memory(bellek), bilgisayarın hızlı erişebildiği geçici olarak bilgilerin depolandığı yerdir. Bilgisayar programları, işlem sırasında kullanılacak verileri bellekte tutarak işlemleri daha hızlı ve etklili şekilde gerçekleştirebilirler. Veriler bellekte CPU(Central Processing Unit) hızlı erişimine olanak tanıyan çeşitli bellek türlerinde depolanabilir. Bu durum, programların geçici olarak değerleri kaydederek çalışmalarını ve bilgi alışverişini daha etkili bir şekilde gerçekleştirmelerine olanak tanır. 
+
+Örneğin, bir programın çalıştığı sırada kullanıcı girişlerini, geçici hesaplamaları veya diğer geçici verileri bellekte tutarak, bu verilere hızlı erişim sağlar ve işlemleri hızlandırır.
+
+Ancak, bellekte tutulan veriler genellikle geçici olduğu için, program sona erdiğinde veya bilgisayar kapatıldığında bu veriler kaybolabilir. Kalıcı veri depolama ihtiyacı için genellikle sabit disk veya diğer depolama aygıtları kullanılır.
+
+Örnek MongoDb datalarını fiziksel bir yerde tutuyor. Redis Memory'de tutar bundan dolayı hızlı bir şekilde çalışır.
+
+.Net 5.0 ile sonraki versiyonların farkı
+
+5.0 ve önceki versiyonlarda Configure Services(servislerimizi eklediğimiz yer) ve Configure(Middleware'lerimizi eklediğimiz yer) 5.0 versiyon sonrası Program.cs'e alındı. 
+
+var app = builder.Build(); kodu ile Program.cs dosyasını ikiye ayıralım. Bu satır ve üstte kalan bölüm birinci parça alttaki kodlar ise ikinci parça oldu. Yukarı parça ConfigureServices metot içinde yaptığımız kodlamalar alttaki parça ise Configure metot'unda yaptığımız işlemler gibi düşünebiliriz. 5.0 öncesi parametre olarak gelen ve dolu olan Configuration nesnesi yeni versiyonlarda builder.Configuration[] şeklinde kullanılabilir. Alt kısımda ise middleware ekleyebiliyoruz. app. diyerek kullanılabilir.
+builder = WebApplicationBuilder ConfigureServices
+app = WebApplication ConfigureMiddleware
+
+
+Scale Up  -->Ram çekirdek sayısı arttırımı (teknik şeyler genelde)
+Scale Out -->Projenin aynı instance'ından bir tane daha oluşturmak
+
+
+Synchronus  Communication --> İstek yapıp sonucu beklemek
+Asynchronus Communication --> Sonuç beklenmez
+
+Message --> WordToPdf işlenmesi için gerekli datayı taşır. Mesajı gönderen mesajın nasıl işleneceğini bilir. Publisher - Message Broker - Subscriber - Publisher şeklinde Publisher'a geri döner. 
+
+Event   --> UserCreatedEvent, OrderCreatedEvent bir notification sistemi sağlar. Event'i fırlatan onun nasıl ele alınacağını bilmez. Geçmiş zaman CreatedEvent ile isimlendirilir. Publisher - Message Broker - Subscriber şeklinde geri dönüş yoktur. Herkes birbirinden habersiz yani hücre sistemi.
+
+Microservice'ler arası Distributed Transaction'lar nasıl yönetilir.
+Eventually Consistency(Nihai Tutarlılık): Herhangi bir T anında farklı kullanıcıların farklı data'ları görmesi sorun teşkil etmiyorsa bu desen kullanılabilir. İnstagram beğeni sayısı bir T anında iki farklı kullanıcı farklı data'lar gördü burada sorun yok ve eventual consistency var. Veri tabanları senkronize olana kadar veri tabanları farklı data'lar görebilir. Nesine.com'a para yükledin belli bir süre sonra geldi mesela.
+
+Saga Pattern: Dağıtılmış sistemlerdeki işlemleri daha esnek bir şekilde yönetmek için kullanılan bir tasarım desenidir. İşlemler, bir dizi adım veya görevden oluşur ve her adımın bir geri alma(compensation) adımı vardır. Bir adım başarısız olursa her adımın geri alma(compensation) adımı vardır. Bir adım başarısız olursa sistem compensation adımını kullanarak tutarlılığı sağlamaya çalışır. Bu model, Two Phase Commit aksine, genellikle her microservice'in kendi işlemlerini yönettiği ve bağımızlığın daha yüksek olduğu microservice mimarileriyle uyumludur. Ancak bu modelde tutarlılığı sağlamak için yapılan işlemler daha karmaşık olabilir ve dikkat gerektirebilir.
+
+Two Phase Commit: İki aşamalı onay deseni hazırlık aşaması ve onay aşaması olarak işlemleri iki aşamada gerçekleştirir. İlk aşamada, koordinatör(genellikle bir ana bilgisayar veya işlem) diğer tüm katılımcılara işlem için hazır olup olmadılarını sorar. Katılımcılar işleme hazır olduklarını bildirirlerse koordinatör ikinci aşamaya geçer. İkinci aşamada, koordinatör tüm katılımcılara işlemlerini tamamlamasını söyler, eğer bir kullanıcı hata verir veya işlemini gerçekleştirmezse tüm işlem iptal edilir. Avantajı sistemdeki tutarlılığı sağlamaktır ancak tek bir koordinatör hatası veya bağlantı sorunu gibi hatalar tüm işlemin başarısız olmasına sebep verir. Bu durum sistemde tek bir nokta arızası(single point of failure) oluşturabilir. 
+
+NoSql veritabanları Primary Key ve Foreign Key gibi şeyler içermez. Eğer tabloda belirli bir alanın yüzde 90'ından fazlası boş ise bu alanı NoSql'de tutmamak boş maliyet demek. NoSql'de migration yapmana veya default değer vermene gerek yok dinamik olduğu için sadece kod tarafında eklemek yeterli.
+SQL             NoSql
+Database        Database
+Table	        Collection
+Row		Json Document
+Column 	        Field
+
+Mongo Db RelationShip Patterns
+Embedded Pattern: Belirli verileri tek bir belge içinde gömerek kullanır. İki koleksiyon arasında bir referans olmaz çünkü veri ana belge içine yerleştirilir. Sorgular genelde daha hızlıdır çünkü ilgili veriye tek bir belge üzerinden erişilebilir. İlişkili verilerin atomik şekilde işlenmesini sağlar. Dezavantajları veri tekrarı olduğu için depolama alanı daha fazla kullanılır. Büyük veri setlerinde performans sorunları olabilir.
+
+Referenced Pattern: İki koleksiyon arasında bir ilişki oluşturarak belirli verileri referanslamak için kullanılır. Yani bir koleksiyondaki belge diğer koleksiyondaki belgeyi referans alır. Verilerin tekrar kullanılmasına olanak tanır. Büyük veri setlerinde avantaj sağlar çünkü veriler parçalanmış olur. Dezavantajı verileri çekmek için ek bir sorgu gerekebilir performansı etkileyebilir.
+
+Subset Pattern: Alt küme deseni olarak çevrilir. Büyük bir veri kümesinin içinden belirli bir alt kümesiyle çalışmak için kullanılır. Yani veri kümesinin bir parçasını temsil eden özel bir alt küme oluşturulur. Örnek bir müşterinin tüm bilgileri arasında sadece isim ve adres gibi belirli bir alt kümenin kullanılması.
+
+Singleton, Factory, Abstract Factory, Builder Pattern, Prototype pattern nesne tanımlamak için kullanılan pattern'lar. Bu pattern'lar hepsi interface ister. 
+
+Static Factory metot'lar direkt olarak class içinde tanımlanarak nesne oluşturmaya yardımcı olurlar. 
+
+Configurasyon yaparken params Type[] tip dizisi istediğinde typeof(Startup) verirsek Startup'ın ya da Program.cs'in bağlı olduğu Assemblye'deki bağlı olduğu sınıfı kapsar.
+Örneğin AutoMapper configursayonu yaparken typeof(Startup) verirsek Startup class'ının bağlı olduğu tüm Mapper class'larını tarar ve configurasyonunu yapmış olur.
+
+OptionsPattern: Yapılandırma bilgilerini daha esnek şekilde yönetmek için kullanılan bir tasarım desenedir. .Net uygulamalarında sıkça kullanılır. Bir sınıf yerine genellikle bir yapılandırma sınıfını ve bir seçenekler nesnesini içerir. Uygulamadaki değişikliklere daha iyi yanıt verebilir. "Yapılandırma seçenekleri ayrı bir sınıfta toplandığı için, değişiklikler bu sınıfta yapılabilir ve uygulama kodunu etkilemeden yapılandırmayı güncellemek mümkün olur. DI ile birlikte kullanılabilecek şekilde tasarlanmıştır. Uygulamanın farklı parçaları arasında yapılandırma bilgilerini paylaşmak için kullanılabilir. Configurasyon dosyalarını tip güvenli class'lar üzerinden okumamızı sağlar.
+
+GetService           servis provider üzerinden çağrılır ilgili servisi bulamazsa hata fırlatmaz null döner
+GetRequiredService   servis provider üzerinden çağrılır ilgili servisi bulamazsa hata fırlatır.
+Bu metotlar DI altyapısında servislere erişim sağlamak için kullanılır. Bu metotlar, IServiceCollection'da kaydedilmiş olan servisleri almak için kullanılır ve belirtilen servisin türünü client'a sağlar. Genellikle bir uygulama içinde başka bir bileşenin (bir controller, service sınıfı veya middleware) ihtiyaç duyduğu bir servise erişmek için kullanılır. Yani bildiğimiz ana DI yöntemini readonly değişken tanımlama sonra eşitleme bunu yapmadan servislere erişilebilmeyi sağlar bu metotlar.
+
+Lazy Loading: Tembel yükleme anlamına gelir. Bir nesnenin ilişkili verilerini yalnızca ihtiyaç olduğunda çekme prensibine dayanır. Bu, başlangıçta ana nesne çekildiğinde ilişkili verilerin hemen çekilmemesi anlamına gelir. İlk nesne çekildikten sonra, uygulama kodu tarafından ilişkili nesnelere erişildiğinde, EF Core otomatik olarak ek veriyi veritabanından çeker. Virtual ile başka navigation entity tanımlanması.
+
+// Lazy loading etkinse
+var category = dbContext.Categories.FirstOrDefault();
+var products = category.Products; // İlişkili ürünleri bu noktada çeker
+
+Eager Loading: Hemen yükleme anlamına gelir. Bir nesneninin ilişkili nesnelerini başlangıçta çekme prensibine dayanır. Eager loading kullanmak, ilişkili verileri hemen kullanılabilir durumda tutarak performans avantajları sağlayabilir ancak gereksiz veri çekimine aşırı yüklü sorgulara dikkat edilmelidir.
+
+Include metodu, EF Core'a belirli bir ilişkilendirilmiş nesnenin verileri çekmesini söyler. Bu ana nesnenin yanı sıra ilişkili nesnelerin verilerini de içeren tek bir sorgu yaratır.
+
+Identity Server:  OAuth 2.0 ve OpenIdConnect protokollerini impelemente etmiş bir uygulamadır.
+OAuth 2.0: Uygulamaların kaynaklara yetkilendirme ile erişmesine izin veren bir yetkilendirme protokolüdür.
+OpenIdConnect: Kimlik doğrulama ve kimlik sağlama süreçlerini ekleyerek kullanıcıların dijital kimliklerini yönetmeye odaklanan bir protokoldür. Çoğu zaman OpenID Connect, OAuth 2.0 ile birlikte kullanılır ve birlikte çalıştıklarında güvenli bir kimlik doğrulama ve yetkilendirme sistemi oluştururlar.
+
+EntityFramework.Tools kütüphanesi packageManagerConsole üzerinde migration işlemlerini gerçekleştirmeye yarar.
+
+using ile scope oluşturmak scope bittiğinde oluşturulan object'in devam etmesini ve memory'den tüketmesini önler. Belirli bir süre için kullanılacak değişkenlerde scope kullanılmalı.
+
+applicationDbContext.Database.Migrate() kodu Migrate metodu DbContext sınıfından türetilen bir nesnesin "Database" özelliğine erişir. Mevcut veritabanının durumunu kontrol eder ve eğer beklenen migration'lar uygulanmamışsa bu migration'ları uygular.
+
+Asenkron işlemleri senkron yapmak için .Wait() metodu eklenebilir. Ancak Task döndüren metot'larda dönüşü bir variable'ye assing edemezsin. 
+Await kullanıldığında da asenkron işlemin asenktron asenkron olmasının bir anlamı olmaz. Çünkü await ile işlem sonuçlanana kadar bekletilir. Asenktron işlem kullanılıp verim elde edilmek isteniyorsa şu konularda verim elde edilebilir, aynı anda birden çok işlemi gerçekleştirebilme, giriş çıkış(I/O) işlelerinde asenkron mekanizması fayda sağlar.
+Await thread'i bloklamaz çünkü thread await ile beklenen işlem gelene kadar serbest bırakılır ve diğer işlemleri yapabilir. Senkron işlemlerde thread bloklanır ve diğer işleme geçmesi için çalışılan işlemin bitmesi beklenir. Asenkron programlamanın avantajları I-O işlemlerinde belirginleşir bundan dolayı thread bloklanmaz diğer işlemlere geçebilir. Aynı andan birden çok işlem de yapılabilir asenkron programlama ile.
+
+IO uzantılı siteler genellikle teknoloji, yazılım ve startup benzeri alanlarda faaliyet gösteren internet sitelerini ifade eder. Bu uzantı Input/Output kelimelerinin kısaltması olarak bilinir. Öne çıkma nedenlerinden biri bu alandaki şirketlerin genelde bu uzantıyı tercih etmeleridir.
+
+OAuth 2.0 Token alma yolları:
+Authorization Code Grant Type
+Implicit Grant Type
+Resource Owner Credentials Grant Type: Kullanıcı bilgilerini gönderip token alma.
+Client Credentials Grant Type: Client bilgilerini gönderip token alma.
+
+ICollection: C# dilinde bir interface tipidir ve bir koleksiyonun genel özelliklerini temsil eder. Koleksiyon, ögelerin bir araya toplandığı bir veri yapısıdır. ICollection bir koleksiyonun elemanlarını eklemek, çıkarmak, temizlemek ve koleksiyon içindeki öğelerle ilgili bazı temel işlemleri gerçekleştirmek için gerekli olan metotları tanımlar. 
+Count, IsReadonly, Add, Clear, Contains, Remove gibi metotları içerir. ICollection arayüzü özellikle koleksiyon sınıflarını birleştiren ve genel kullanım için standart bir arabirim sağlayan temel bir arabirimdir. Bu sayede farklı koleksiyon türleri (List<T> , HashSet<T>) bu ortam arabirimi uygulayarak genel bir kullanım sağlayabilirler. 
+
+Array'lar ICollection kullanmazlar onun yerine IEnumerable kullanırlar IEnumerable ise koleksiyondan elemanları tek tek almak için bir döngü kullanılmasını sağlar.
+
+Refresh Token --> Offline Token olarak da geçer. Kullanıcı o an online olmasa bile ben kullanıcı adına elimdeki refresh token ile beraber yeni token alabilirim. Eğer refresh token kullanmazsak yeni bir token almak istediğimde mutlaka kullanıcıdan login bilgilerini almam gerekir. Token süresi dolarsa ki 1 saat falan olur genelde tekrar token alma ekranına döndürmem gerekir. Ancak refresh token kullanırsam süresi bitmiş token ile refresh token'i göndererek yeni token elde edebilirim. Cookie'de refresh token'i tutarak token süresi bitmesine rağmen yeni token elde edebilirim. Bundan dolayı ismi offline token. 
+
+Token içindeki scope'daki değerler örneğin email yoksa kullanıcının email'ine ulaşamazsın, offline_access yoksa refresh token gönderip yeni bir access token alamazsın ve openid mutlaka olmak zorunda. 
+Token içindeki sub kullanıcı id'si demek.
+
+app.UseStaticFiles(); Program.cs içinde tanımlanan bu kod static dosyalarını dış dünyaya açan bir middleware kodudur.
+
+Kestrel: ASP.NET Core uygulamalarının yerleşik web sunucusudur. ASP.NET Core uygulamalarını çalıştırmak için genellikle varsayılan olarak tercih edilen sunucudur. Çeşitli işletim sistemlerinde çalışabilir ve bağımsız olarak kullanılabilir. Performans olarak optimize edilmiştir ve hafif bir tasarıma sahiptir. 
+
+IIS: Microsoft'un Windows işletim sistemleri için geliştirdiği bir web sunucu servisidir. Geleneksel ASP.NET uygulamaları için uzun bir süre boyunca ana barındırma ortamı olmuştur ancak .NET Core ile Kestrel daha yaygın kullanılmaya başlamıştır. IIS işletim sistemine özgüdür ve Windows tabanlı bir çözümdür. Geniş bir özellik yelpazesi ve yönetim araçlarına sahiptir ve büyük ölçekli karmaşık web uygulamalarını yönetmek için kullanılabilir. 
+
+ASP.NET Core projeleri Kestrel üzerinde çalışacak şekilde tasarlandığından , IIS kullanılsa bile genellikle Kestrel arkasında çalışır. IIS gelen istekleri Kestrel'e yönlendirir ve Kestrel ASP.NET Core uygulamasını işler. 
+
+CancellationToken: .Net Core ve .Net platformlarında çoklu iş parçacıklı veya asenktron işlemleri iptal etmek için kullanılan bir mekanizmadır. Asenkron başlayan bir işlem sadece hata fırlatarak sonlandırılabilir. Genellikle uzun süren işlemleri izlemek ve gerekirse bunları iptal etmek için kullanılır. CancellationToken, bir iş parçacığının veya bir asenkron işlemin, iptal edilip edilmeğini kontrol etmesine olanak tanır. 
+CancellationToken sınıfı CancellationTokenSource nesnesi tarafından oluşturulur ve bu nesne üzerinden iptal talepleri gönderebilir. Eğer bir iş parçacığı veya asenkron bir işlem çalışma sırasında iptal talebi alırsa bu işlemi sonlandırmak için gerekli düzenlemeleri yapabilir.
+
+StoppinToken: Genelde ASP.NET Core uygulamalarında background servislerin durdurulması sırasında kullanılan bir CancellationToken'dır. IHosted ve türevlerinde kullanılır. Bu token uygulama kapanırken veya servis durdurulurken işlemleri iptal etmek için kullanılır. Özetle stoppingToken belirli bir cancellationToken durumunu temsil eder ve IHostedService ve BackgroundService implementasyonlarında servislerin durdurulması sırasında kullanılır.
+
+FileStream: .Net Platformundaki dosya işlemleri için kullanılan bir sınıftır. Bu sınıf, dosya üzerinde okuma, yazma ve konumlandırma işlemlerini gerçekleştirmek için kullanılır. FileStream Stream sınıfından türetilmiştir ve bu sayede çeşitli stream işlemlerini destekler. Genelde düşük seviye dosya işlemlerini gerçekleştirmek için kullanılır ve genelde byte tabanlı işlemleri destekler. IDisposable arabirimini uygular ve using ifadesi ile kullanıldığında otomatik olarak kaynaklarını temizler. Dosya işlemleri tamamlandığında dosyanın kapatılması önemlidir. StreamReader ve StreamWriter gibi daha yüksek seviyeli sınıflar metin tabanlı dosyalarla çalışmak için daha uygundur.
+
+IDisposable: .NET platformunda kaynak yönetimi ve temizleme işlemlerini destekleyen bir arabirimdir. Bu arabirim, bir nesnenin kaynaklarını serbest bırakma işlemi için kullanılır. Özellikle dosya işlemleri, ağ bağlantıları, veritabanı bağlantıları gibi kaynaklar, programın çalışma süresince sistem kaynaklarına ihtiyaç duyarlar ve bu kaynaklar artık gerekli olmadığında serbest bırakılmalıdır. 
+
+IDisposable arabirimi Dispose adında bir metod içerir. Bu metot, nesnenin sahip olduğu kaynakları serbest bırakmak için kullanılır. Bu metotu çağırmak nesnenin sahip olduğu kaynakları yönetilen bir şekilde serbest bırakma şansı tanır. Bu özellikle unmanaged kaynakların(örneğin dosya kolları, ağ bağlantıları) gibi güvenli bir şekilde temizlemesine olanak sağlar. Using ifadesi IDisposable arabirimine sahip nesnelerin kullanımını kolaylaştıran bir dil özelliğidir. Using bloğu içinde yer alan IDisposable nesneler, blok sona erdiğinde otomatik olarak Dispose metotunu çağırarak kaynalarını serbest bırakır. 
+
+Garbage Collector: .NET platformunda hafıza yönetimini sağlayan bir sistemdir. Bu sistem artık kullanılmayan nesneleri tespit eder ve otomatik olarak hafızadan siler. Bu sayede geliştiricilerin elle memory yönetimiyle uğraşması gerekmez. GC genellikle referans sayma yerine LifeCyle üzerine çalışır. Bir nesne başka bir nesne tarafından artık referans alınmıyorsa bu nesne artık kullanılmayan ve toplanmaya hazır bir nesnedir. Garbage Collector yönetilen nesnelerle ilgilenir, IDisposable gibi unmanaged kaynakları serbest bırakmak için Dispose metotunu kullanmak önemlidir. Ancak, IDisposable arabirimine sahip bir nesnenin Dispose metotu çağrılmazsa, Garbage Collector bu nesneyi hafızadan temizleyebilir ancak unmanaged kaynakları serbest bırakmaz. Bu durumu önlemek için using ifadesi kullanılmadır.
+
+Nesnenin yaşam döngüsünün kontrol altında olduğu, yaşam döngüsü bittiğinde Dispose ile kaynaklarının serbest bırakıldığı ancak bu yöntem karmaşık ve exception handling açısından daha zordur. 
+
