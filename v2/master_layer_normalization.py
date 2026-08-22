@@ -12,6 +12,6 @@ class MasterLayerNormalization(nn.Module):
     def forward(self, x):
         mean = x.mean(dim = -1, keepdim = True)
         variance = x.var(dim = -1, keepdim = True, unbiased = False)
-        normalized_x = (x - mean) / torch.sqrt(variance + self.eps, device = self.device)
+        normalized_x = (x - mean) / torch.sqrt(variance + self.eps)
         
         return self.weight * normalized_x   

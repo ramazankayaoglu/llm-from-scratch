@@ -14,8 +14,8 @@ def get_rotary_position_encoding(input: torch.Tensor, base = 10000, device = "cp
     positions = torch.arange(0, context_length, device = device, dtype = torch.float32).unsqueeze(1)
     
     angles = positions * freqs
-    sin_angles = torch.sin(angles, device = device)
-    cos_angles = torch.cos(angles, device = device)
+    sin_angles = torch.sin(angles)
+    cos_angles = torch.cos(angles)
 
     input_even = input[:, :dimension // 2] #[0,2,4,6...]
     input_odd = input[:, dimension // 2:]  #[1,3,5...]
@@ -44,6 +44,6 @@ class MasterEmbedding(nn.Module):
         self.device = device
 
     def forward(self, x):
-        x = self.embedding(x, device = self.device)
-        x = self.get_pos(x)
+        x = self.embedding(x)
+        x = self.get_pos(x, device = self.device)
         return x

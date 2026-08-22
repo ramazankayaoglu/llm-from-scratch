@@ -12,7 +12,7 @@ class MasterMultiHeadAttention(nn.Module):
         self.multi_head_attention = nn.MultiheadAttention(embedding_dim, num_heads, dropout = dropout_rate, device = device)
         self.projection = nn.Linear(embedding_dim, output_dim, device = device)
 
-        self.register_buffer("mask", torch.triu(torch.ones(context_length, context_length), diagonal = 1).bool())
+        self.register_buffer("mask", torch.triu(torch.ones(context_length, context_length), diagonal = 1).bool().to(device))
 
        
     def forward(self, x):
