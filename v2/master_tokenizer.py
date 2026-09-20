@@ -9,6 +9,19 @@ class MasterTokenizer:
       self.vocab = json.load(f)
       self.reverse_vocab = {v: k for k, v in self.vocab.items()}
 
+  def encode_batch(self, texts, context_length):
+    sentences_tokens = []
+    for text in texts:
+      tokens = self.encode(text).tolist()
+      if len(tokens) > context_length:
+        tokens = tokens[:context_length]
+      else:
+        tokens = tokens + [self.vocab["<pad>"]] * (context_length - len(tokens))
+
+      sentences_tokens.append(tokens)
+
+    return torch.tensor(sentences_tokens)
+   
   def encode(self, text):
     tokens = [] 
        

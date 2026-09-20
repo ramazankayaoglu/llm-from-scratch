@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 
-from .master_causal_attention import MasterCausalAttention
+from master_causal_attention import MasterCausalAttention
 
 class MasterMultiHeadAttention(nn.Module): 
     def __init__(self, embedding_dim, output_dim, context_length, num_heads, dropout_rate = 0):

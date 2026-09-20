@@ -1,7 +1,7 @@
 import torch.nn as nn
-from .master_mlp import MasterMLP
-from .master_multi_head_attention import MasterMultiHeadAttention
-from .master_layer_normalization import MasterLayerNormalization
+from master_mlp import MasterMLP
+from master_multi_head_attention import MasterMultiHeadAttention
+from master_layer_normalization import MasterLayerNormalization
 
 class MasterDecoderBlock(nn.Module):
     def __init__(self, embedding_dim, num_heads, context_length, device):

@@ -2,8 +2,8 @@ from turtle import forward
 import torch
 import torch.nn as nn
 
-from .master_decoder_block import MasterDecoderBlock
-from .master_embedding import MasterEmbedding
+from master_decoder_block import MasterDecoderBlock
+from master_embedding import MasterEmbedding
 
 class MasterModel(nn.Module):
     def __init__(self, vocab_size, embedding_dim, num_heads, context_length, num_layers, device):
@@ -12,6 +12,7 @@ class MasterModel(nn.Module):
         self.layers = nn.Sequential(*[MasterDecoderBlock(embedding_dim, num_heads, context_length, device) for _ in range(num_layers)])
 
         self.lm_head = nn.Linear(embedding_dim, vocab_size, device = device)
+        self.device = device
 
     def forward(self, x):
         x = self.embedding(x) #dictionary meanings of the tokens(words)
@@ -28,15 +29,26 @@ class MasterModel(nn.Module):
     #print(max_prob, max_index, probs)
     """
 
-    def generate(self, x: torch.Tensor, max_new_tokens: int): # top_k, top_p, temperature
+    def generate(self,
+                 x:
+                torch.Tensor,
+                max_new_tokens: int,
+                temperature : float = 1.0): # top_k, top_p, temperature
         tokens = x.detach().cpu().numpy().tolist()
 
         for _ in range(max_new_tokens):
+            x = x.unsqueeze(0).to(self.device)
             out = self.forward(x)
-            probs = torch.softmax(out[-1], dim=-1)
-            _, max_index = torch.max(probs, dim=-1)
-            tokens.append(max_index.item())
-            if max_index == 59 or len(tokens) > 32: #<eos> and max context length
+            out = out.squeeze(0)    
+            if temperature != 1.0 and temperature > 0:
+                adjusted_outs = out[-1] / temperature
+                probs = torch.softmax(adjusted_outs, dim = -1)
+            else:
+                probs = torch.softmax(out[-1], dim=-1)
+            #_, max_index = torch.max(probs, dim=-1)
+            sample = torch.multinomial(probs, 1)
+            tokens.append(sample.item())
+            if sample == 59 or len(tokens) > 32: #<eos> and max context length
                 break
 
             x = torch.tensor(tokens)
