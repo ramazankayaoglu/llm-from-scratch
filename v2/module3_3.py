@@ -51,17 +51,26 @@ out.shape
 
 
 
-out = master_model.generate(tokens, 3, temperature = 510.0)
-print(master_tokenizer.decode(out))
-
 #temperature : sıcaklık
 #top_k: k adet en yüksek olasılıklı token seçer
 #top_p: next prediction'da olasılıkların toplamı normalde 1 eder, burada olasılıklarının toplamı 0.95 0.90 gibi ayarlamaların yapıldığı terim
 
 
-outs = {}
+"""outs = {}
 for _ in range(1000):
   out = master_model.generate(tokens, 3, temperature = 0.50)
   decoded = master_tokenizer.decode(out)
   outs[decoded] = outs.get(decoded, 0) + 1
-print(outs) 
+print(outs) """
+
+
+
+top_k = 10
+
+sorted_outs = sorted(out[-1][-1].tolist(), reverse=True)
+sorted_indexes = []
+for so in sorted_outs[:top_k]:
+  so_index = out[-1][-1].tolist().index(so)
+  sorted_indexes.append(so_index)
+sorted_outs = torch.tensor(sorted_outs[:top_k])
+print(sorted_outs, sorted_indexes)
